@@ -1,0 +1,108 @@
+Implement the following CPU scheduling Algorithm.
+
+SJF (Non-Preemptive)
+
+Code:
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int id;           // Process ID
+    int burstTime;    // Burst Time (Execution time)
+    int arrivalTime;  // Arrival Time
+    int completionTime; // Completion Time
+    int turnAroundTime; // Turnaround Time
+    int waitingTime; // Waiting Time
+} Process;
+
+// Function to sort the processes by burst time and then by arrival time
+void sortProcesses(Process processes[], int n) {
+    for (int i = 0; i < n-1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (processes[i].arrivalTime > processes[j].arrivalTime ||
+                (processes[i].arrivalTime == processes[j].arrivalTime && processes[i].burstTime > processes[j].burstTime)) {
+                // Swap the processes
+                Process temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+}
+
+// Function to implement SJF Non-Preemptive scheduling
+void SJFNonPreemptive(Process processes[], int n) {
+    int currentTime = 0;
+    int completed = 0;
+    float totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    // Sort the processes based on arrival time and burst time
+    sortProcesses(processes, n);
+
+    // Array to track if a process is completed
+    int isCompleted[n];
+    for (int i = 0; i < n; i++) {
+        isCompleted[i] = 0;
+    }
+
+    // Run the scheduling algorithm
+    while (completed < n) {
+        int minBurstTime = 999999;
+        int idx = -1;
+
+        // Find the process with the shortest burst time that is ready to execute
+        for (int i = 0; i < n; i++) {
+            if (processes[i].arrivalTime <= currentTime && isCompleted[i] == 0) {
+                if (processes[i].burstTime < minBurstTime) {
+                    minBurstTime = processes[i].burstTime;
+                    idx = i;
+                }
+            }
+        }
+
+        // If there is a process to execute, execute it
+        if (idx != -1) {
+            currentTime += processes[idx].burstTime;
+            processes[idx].completionTime = currentTime;
+            processes[idx].turnAroundTime = processes[idx].completionTime - processes[idx].arrivalTime;
+            processes[idx].waitingTime = processes[idx].turnAroundTime - processes[idx].burstTime;
+            
+            totalWaitingTime += processes[idx].waitingTime;
+            totalTurnaroundTime += processes[idx].turnAroundTime;
+            isCompleted[idx] = 1;
+            completed++;
+        } else {
+            // If no process is ready to execute, increment time
+            currentTime++;
+        }
+    }
+
+    // Print results
+    printf("\nSJF Non-Preemptive Scheduling:\n");
+    printf("ID\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].id, processes[i].arrivalTime,
+               processes[i].burstTime, processes[i].completionTime, processes[i].turnAroundTime,
+               processes[i].waitingTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / n);
+    printf("Average Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+}
+
+int main() {
+    // Sample processes: ID, Burst Time, Arrival Time
+    Process processes[] = {
+        {1, 6, 1},  // Process 1: Burst = 6, Arrival = 1
+        {2, 8, 2},  // Process 2: Burst = 8, Arrival = 2
+        {3, 7, 3},  // Process 3: Burst = 7, Arrival = 3
+        {4, 3, 4}   // Process 4: Burst = 3, Arrival = 4
+    };
+
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    // Call the SJF Non-Preemptive scheduling function
+    SJFNonPreemptive(processes, n);
+
+    return 0;
+}

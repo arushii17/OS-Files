@@ -1,0 +1,115 @@
+Implement the following CPU scheduling Algorithm.
+
+SJTF (shortest remaining time first -Preemptive SJF)
+
+Code:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int id;                // Process ID
+    int burstTime;         // Burst Time (Total execution time)
+    int arrivalTime;       // Arrival Time
+    int remainingTime;     // Remaining Time (for preemptive SJF)
+    int completionTime;    // Completion Time
+    int waitingTime;       // Waiting Time
+    int turnAroundTime;    // Turnaround Time
+} Process;
+
+// Function to sort processes based on arrival time
+void sortProcessesByArrivalTime(Process processes[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (processes[i].arrivalTime > processes[j].arrivalTime) {
+                Process temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+}
+
+// Function to implement SJTF (Preemptive) scheduling
+void SJTFPreemptive(Process processes[], int n) {
+    int currentTime = 0;
+    int completed = 0;
+    int isCompleted[n];
+    float totalWaitingTime = 0, totalTurnaroundTime = 0;
+    
+    // Initialize isCompleted array to track completed processes
+    for (int i = 0; i < n; i++) {
+        isCompleted[i] = 0;
+        processes[i].remainingTime = processes[i].burstTime;
+    }
+
+    // Sort the processes based on arrival time
+    sortProcessesByArrivalTime(processes, n);
+
+    // Run the scheduling algorithm
+    while (completed < n) {
+        int idx = -1;
+        int minRemainingTime = 999999;
+
+        // Find the process with the shortest remaining burst time
+        for (int i = 0; i < n; i++) {
+            if (processes[i].arrivalTime <= currentTime && isCompleted[i] == 0) {
+                if (processes[i].remainingTime < minRemainingTime) {
+                    minRemainingTime = processes[i].remainingTime;
+                    idx = i;
+                }
+            }
+        }
+
+        // If there is a process to execute, execute it
+        if (idx != -1) {
+            // Execute the process for 1 unit of time
+            processes[idx].remainingTime--;
+            currentTime++;
+
+            // If the process is finished
+            if (processes[idx].remainingTime == 0) {
+                processes[idx].completionTime = currentTime;
+                processes[idx].turnAroundTime = processes[idx].completionTime - processes[idx].arrivalTime;
+                processes[idx].waitingTime = processes[idx].turnAroundTime - processes[idx].burstTime;
+
+                totalWaitingTime += processes[idx].waitingTime;
+                totalTurnaroundTime += processes[idx].turnAroundTime;
+                isCompleted[idx] = 1;
+                completed++;
+            }
+        } else {
+            // If no process is ready, increment time
+            currentTime++;
+        }
+    }
+
+    // Print results
+    printf("\nSJTF (Preemptive) Scheduling:\n");
+    printf("ID\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].id, processes[i].arrivalTime,
+               processes[i].burstTime, processes[i].completionTime, processes[i].turnAroundTime,
+               processes[i].waitingTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / n);
+    printf("Average Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+}
+
+int main() {
+    // Sample processes: ID, Burst Time, Arrival Time
+    Process processes[] = {
+        {1, 6, 1},  // Process 1: ID=1, Burst=6, Arrival=1
+        {2, 8, 2},  // Process 2: ID=2, Burst=8, Arrival=2
+        {3, 7, 3},  // Process 3: ID=3, Burst=7, Arrival=3
+        {4, 3, 4}   // Process 4: ID=4, Burst=3, Arrival=4
+    };
+
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    // Call the SJTF Preemptive scheduling function
+    SJTFPreemptive(processes, n);
+
+    return 0;
+}
