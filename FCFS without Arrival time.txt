@@ -1,0 +1,66 @@
+Implement the following CPU scheduling Algorithm.
+
+FCFS without Arrival time
+
+Code:
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct Process {
+    int id;           // Process ID
+    int burstTime;    // Burst Time (CPU time required)
+    int completionTime;  // Completion Time
+    int waitingTime;     // Waiting Time
+    int turnAroundTime;  // Turnaround Time
+};
+
+void calculateTimes(vector<Process>& processes) {
+    int currentTime = 0;
+
+    for (int i = 0; i < processes.size(); i++) {
+        processes[i].completionTime = currentTime + processes[i].burstTime;
+        currentTime = processes[i].completionTime;  // Update current time after process completes
+    }
+
+    for (int i = 0; i < processes.size(); i++) {
+        processes[i].turnAroundTime = processes[i].completionTime;
+        processes[i].waitingTime = processes[i].turnAroundTime - processes[i].burstTime;
+    }
+}
+
+void printResults(const vector<Process>& processes) {
+    cout << "Process ID | Burst Time | Completion Time | Waiting Time | Turnaround Time\n";
+    cout << "------------------------------------------------------------\n";
+    
+    for (const auto& process : processes) {
+        cout << process.id << "         | "
+             << process.burstTime << "          | "
+             << process.completionTime << "             | "
+             << process.waitingTime << "            | "
+             << process.turnAroundTime << "\n";
+    }
+}
+
+int main() {
+    int n;
+    
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    vector<Process> processes(n);
+    for (int i = 0; i < n; i++) {
+        processes[i].id = i + 1;
+        cout << "Enter Burst Time for Process " << i + 1 << ": ";
+        cin >> processes[i].burstTime;
+    }
+
+    calculateTimes(processes);
+
+    printResults(processes);
+
+    return 0;
+}
+

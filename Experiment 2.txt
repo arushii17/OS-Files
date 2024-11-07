@@ -1,0 +1,80 @@
+1)Shell Program to Print "Hello World"
+#!/bin/bash
+
+echo "Hello World"
+
+2) Shell Program to Find the Factorial of a Number
+#!/bin/bash
+
+read -p "Enter a number: " num
+fact=1
+
+if [ $num -lt 0 ]; then
+  echo "Factorial is not defined for negative numbers."
+  exit 1
+fi
+
+for ((i=1; i<=num; i++))
+do
+  fact=$((fact * i))
+done
+
+echo "The factorial of $num is $fact"
+
+3)Shell Program to Calculate the Gross Salary of an Employee
+#!/bin/bash
+
+read -p "Enter the basic salary: " basic_salary
+read -p "Enter the HRA percentage: " hra_percentage
+read -p "Enter the DA percentage: " da_percentage
+
+hra=$(echo "$basic_salary * $hra_percentage / 100" | bc)
+da=$(echo "$basic_salary * $da_percentage / 100" | bc)
+
+
+gross_salary=$(echo "$basic_salary + $hra + $da" | bc)
+
+echo "Gross Salary = Basic Salary + HRA + DA"
+echo "Gross Salary: $gross_salary"
+
+4)Shell Program to Display Menu and Execute Instructions
+#!/bin/bash
+
+while true
+do
+  echo "Select an option:"
+  echo "1. List of files"
+  echo "2. Process Status"
+  echo "3. Date"
+  echo "4. Users in Program"
+  echo "5. Quit"
+  
+  read -p "Enter your choice (1-5): " choice
+  
+  case $choice in
+    1)
+      echo "List of files in current directory:"
+      ls -l
+      ;;
+    2)
+      echo "Process Status:"
+      ps
+      ;;
+    3)
+      echo "Current Date and Time:"
+      date
+      ;;
+    4)
+      echo "Users currently logged in:"
+      who
+      ;;
+    5)
+      echo "Exiting the program."
+      exit 0
+      ;;
+    *)
+      echo "Invalid choice. Please select a number between 1 and 5."
+      ;;
+  esac
+done
+
