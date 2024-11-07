@@ -1,0 +1,87 @@
+Write a program to perform priority scheduling among a set of processes.
+
+Code:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int id;             // Process ID
+    int burstTime;      // Burst Time (Total execution time)
+    int arrivalTime;    // Arrival Time
+    int priority;       // Priority (Lower number means higher priority)
+    int completionTime; // Completion Time
+    int waitingTime;    // Waiting Time
+    int turnAroundTime; // Turnaround Time
+} Process;
+
+// Function to sort processes by priority and arrival time
+void sortProcessesByPriority(Process processes[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (processes[i].priority > processes[j].priority || 
+                (processes[i].priority == processes[j].priority && processes[i].arrivalTime > processes[j].arrivalTime)) {
+                // Swap the processes
+                Process temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+}
+
+// Function to perform Priority Scheduling
+void priorityScheduling(Process processes[], int n) {
+    int currentTime = 0;
+    float totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    // Sort processes based on priority and arrival time
+    sortProcessesByPriority(processes, n);
+
+    // Calculate completion time, turnaround time, and waiting time
+    for (int i = 0; i < n; i++) {
+        // Ensure that the process starts only after its arrival time
+        if (currentTime < processes[i].arrivalTime) {
+            currentTime = processes[i].arrivalTime;
+        }
+        
+        processes[i].completionTime = currentTime + processes[i].burstTime;
+        processes[i].turnAroundTime = processes[i].completionTime - processes[i].arrivalTime;
+        processes[i].waitingTime = processes[i].turnAroundTime - processes[i].burstTime;
+
+        totalWaitingTime += processes[i].waitingTime;
+        totalTurnaroundTime += processes[i].turnAroundTime;
+
+        currentTime = processes[i].completionTime;
+    }
+
+    // Print the results
+    printf("\nPriority Scheduling:\n");
+    printf("ID\tArrival Time\tBurst Time\tPriority\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\t\t\t%d\n", 
+               processes[i].id, processes[i].arrivalTime, processes[i].burstTime,
+               processes[i].priority, processes[i].completionTime, 
+               processes[i].turnAroundTime, processes[i].waitingTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / n);
+    printf("Average Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+}
+
+int main() {
+    // Sample processes: ID, Burst Time, Arrival Time, Priority
+    Process processes[] = {
+        {1, 6, 1, 2},  // Process 1: ID=1, Burst=6, Arrival=1, Priority=2
+        {2, 8, 2, 1},  // Process 2: ID=2, Burst=8, Arrival=2, Priority=1
+        {3, 7, 3, 3},  // Process 3: ID=3, Burst=7, Arrival=3, Priority=3
+        {4, 3, 4, 2}   // Process 4: ID=4, Burst=3, Arrival=4, Priority=2
+    };
+
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    // Call the priority scheduling function
+    priorityScheduling(processes, n);
+
+    return 0;
+}
