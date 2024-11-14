@@ -1,0 +1,112 @@
+The students will understand the reader/writer problem using semaphore 
+
+Code:
+
+import java.util.concurrent.Semaphore;
+
+class ReaderWriterProblem {
+    private static int readCount = 0;   // Number of active readers
+    private static int sharedData = 0;  // Shared resource
+    private static final Semaphore rwMutex = new Semaphore(1);  // Semaphore for writers
+    private static final Semaphore mutex = new Semaphore(1);    // Semaphore for reader count
+
+    static class Reader implements Runnable {
+        private final int readerId;
+
+        public Reader(int readerId) {
+            this.readerId = readerId;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Entry Section
+                mutex.acquire();
+                readCount++;
+                if (readCount == 1) {
+                    rwMutex.acquire();  // First reader locks the resource for reading
+                }
+                mutex.release();
+
+                // Critical Section (Reading section)
+                System.out.println("Reader " + readerId + " is reading shared data: " + sharedData);
+                Thread.sleep(1000); // Simulate reading time
+
+                // Exit Section
+                mutex.acquire();
+                readCount--;
+                if (readCount == 0) {
+                    rwMutex.release();  // Last reader unlocks the resource
+                }
+                mutex.release();
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Reader " + readerId + " was interrupted.");
+            }
+        }
+    }
+
+    static class Writer implements Runnable {
+        private final int writerId;
+
+        public Writer(int writerId) {
+            this.writerId = writerId;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Entry Section
+                rwMutex.acquire();  // Writer locks the resource
+
+                // Critical Section (Writing section)
+                sharedData += 5;  // Modify shared data
+                System.out.println("Writer " + writerId + " is writing new value: " + sharedData);
+                Thread.sleep(1000); // Simulate writing time
+
+                // Exit Section
+                rwMutex.release();  // Writer unlocks the resource
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Writer " + writerId + " was interrupted.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int numReaders = 3;
+        int numWriters = 2;
+
+        // Create reader threads
+        Thread[] readers = new Thread[numReaders];
+        for (int i = 0; i < numReaders; i++) {
+            readers[i] = new Thread(new Reader(i + 1));
+            readers[i].start();
+        }
+
+        // Create writer threads
+        Thread[] writers = new Thread[numWriters];
+        for (int i = 0; i < numWriters; i++) {
+            writers[i] = new Thread(new Writer(i + 1));
+            writers[i].start();
+        }
+
+        // Wait for all threads to complete
+        for (int i = 0; i < numReaders; i++) {
+            try {
+                readers[i].join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        for (int i = 0; i < numWriters; i++) {
+            try {
+                writers[i].join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+}
