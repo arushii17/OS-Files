@@ -1,0 +1,109 @@
+Write a program to implement Banker’s algorithm for deadlock avoidance.
+
+Code:
+
+import java.util.Scanner;
+
+public class BankersAlgorithm {
+
+    private int numProcesses;
+    private int numResources;
+    private int[][] max;
+    private int[][] allocation;
+    private int[][] need;
+    private int[] available;
+
+    public BankersAlgorithm(int numProcesses, int numResources) {
+        this.numProcesses = numProcesses;
+        this.numResources = numResources;
+        max = new int[numProcesses][numResources];
+        allocation = new int[numProcesses][numResources];
+        need = new int[numProcesses][numResources];
+        available = new int[numResources];
+    }
+
+    public void inputValues() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the maximum resource matrix:");
+        for (int i = 0; i < numProcesses; i++) {
+            for (int j = 0; j < numResources; j++) {
+                max[i][j] = scanner.nextInt();
+            }
+        }
+
+        System.out.println("Enter the allocation matrix:");
+        for (int i = 0; i < numProcesses; i++) {
+            for (int j = 0; j < numResources; j++) {
+                allocation[i][j] = scanner.nextInt();
+                need[i][j] = max[i][j] - allocation[i][j];
+            }
+        }
+
+        System.out.println("Enter the available resources:");
+        for (int j = 0; j < numResources; j++) {
+            available[j] = scanner.nextInt();
+        }
+
+        scanner.close();
+    }
+
+    public boolean isSafeState() {
+        boolean[] finish = new boolean[numProcesses];
+        int[] work = available.clone();
+        
+        System.out.println("\nChecking system's safe state...");
+        System.out.println("Available Resources: " + java.util.Arrays.toString(work));
+
+        while (true) {
+            boolean foundProcess = false;
+            for (int i = 0; i < numProcesses; i++) {
+                if (!finish[i] && canExecute(i, work)) {
+                    for (int j = 0; j < numResources; j++) {
+                        work[j] += allocation[i][j];
+                    }
+                    finish[i] = true;
+                    foundProcess = true;
+                    System.out.println("Process P" + i + " executed. Work: " + java.util.Arrays.toString(work));
+                }
+            }
+            if (!foundProcess) break;
+        }
+
+        for (boolean f : finish) {
+            if (!f) {
+                System.out.println("System is not in a safe state.");
+                return false;
+            }
+        }
+
+        System.out.println("System is in a safe state.");
+        return true;
+    }
+
+    private boolean canExecute(int process, int[] work) {
+        for (int j = 0; j < numResources; j++) {
+            if (need[process][j] > work[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the number of processes:");
+        int numProcesses = scanner.nextInt();
+
+        System.out.println("Enter the number of resource types:");
+        int numResources = scanner.nextInt();
+
+        BankersAlgorithm bankersAlgorithm = new BankersAlgorithm(numProcesses, numResources);
+        bankersAlgorithm.inputValues();
+
+        bankersAlgorithm.isSafeState();
+
+        scanner.close();
+    }
+}
